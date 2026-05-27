@@ -38,3 +38,7 @@ src-tauri/target/
 src-tauri/gen/
 src-tauri/Cargo.lock
 src-tauri/target
+
+# Local documentation & logs
+CONTEXT.md
+LOG.md
