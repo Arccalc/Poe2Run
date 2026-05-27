@@ -1,10 +1,10 @@
 {
   "version": "0.1.1",
   "notes": "Added Resume Run mode and drag-and-drop fixes",
-  "pub_date": "2026-05-28T01:25:00Z",
+  "pub_date": "2026-05-28T01:36:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRbDl4eVIvQWJRSGl4UHB6REh5ZW5GTnZ2aHpQZHNIYU5SRGphWnJXRTNVZTAvSEV6c2NrNjlxbk1sd3FHOWlkLzZhN3dGRGUydU15T2dFdjdtcHZnVVRWdmlrZE4rV2drPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTEzNjA2CWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4xLjFfeDY0X2VuLVVTLm1zaQpDU3ZXOURYZWRFcjVqRjF5UkgyL3dKbkdiUWpPWUcyZlA4RDd0bTZ2SmtFbWZKV0Rrc093TlJBdk1KakIrb2FwWFR4UTlZaFNNRklFMUV5YUxHT0JCdz09Cg==",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVXpJOWxBZ2RNYTlmUEpEcThQR3V6TWRHUUZLelNmYVpEVVZ6b1ZYWk14OHBKVmxvcjlsWXFDMTc4VGJKODQrRURRdllkMjVRZzVSTm9IbG9BUkdDaWcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTE0MTcxCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4xLjFfeDY0X2VuLVVTLm1zaQp4VjNqVE5OTVhMSmh0T2NHMktOUG93bFcyTm5OMGNRNnduRnJaRFlYMU94a2prcU5ObmxseG1SREk3bVdVcEZRZDJYZUNPSVErcXYwZE9XcVlYZG1Ddz09Cg==",
       "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.1.1/PoE2SpeedrunTimer_0.1.1_x64_en-US.msi"
     }
   }
