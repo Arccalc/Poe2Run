@@ -184,9 +184,13 @@ impl SpeedrunFsm {
         
         self.visited_zones_set.clear();
         self.actual_durations.clear();
-        for split in &self.route_splits {
+        for i in 0..self.route_splits.len() {
+            let split = &self.route_splits[i];
             self.visited_zones_set.insert(split.zone_name.clone());
-            self.actual_durations.push(Some(0)); // Заглушка для старых сегментов
+            
+            let ref_entry = if i == 0 { 0 } else { self.route_splits[i - 1].elapsed_ms };
+            let duration = split.elapsed_ms - ref_entry;
+            self.actual_durations.push(Some(duration));
         }
         self.active_split_index = None;
         

@@ -1,11 +1,11 @@
 {
-  "version": "0.1.0",
-  "notes": "Initial release with auto-updater setup",
-  "pub_date": "2026-05-27T07:50:00Z",
+  "version": "0.1.1",
+  "notes": "Added Resume Run mode and drag-and-drop fixes",
+  "pub_date": "2026-05-28T01:25:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "SIGNATURE_OF_YOUR_ZIP_MSI_HERE",
-      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.1.0/PoE2SpeedrunTimer_0.1.0_x64_en-US.msi.zip"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRbDl4eVIvQWJRSGl4UHB6REh5ZW5GTnZ2aHpQZHNIYU5SRGphWnJXRTNVZTAvSEV6c2NrNjlxbk1sd3FHOWlkLzZhN3dGRGUydU15T2dFdjdtcHZnVVRWdmlrZE4rV2drPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTEzNjA2CWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4xLjFfeDY0X2VuLVVTLm1zaQpDU3ZXOURYZWRFcjVqRjF5UkgyL3dKbkdiUWpPWUcyZlA4RDd0bTZ2SmtFbWZKV0Rrc093TlJBdk1KakIrb2FwWFR4UTlZaFNNRklFMUV5YUxHT0JCdz09Cg==",
+      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.1.1/PoE2SpeedrunTimer_0.1.1_x64_en-US.msi"
     }
   }
 }

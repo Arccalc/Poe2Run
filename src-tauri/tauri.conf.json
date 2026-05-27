@@ -1,10 +1,11 @@
 {
   "productName": "PoE2SpeedrunTimer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.poe2speedrun.timer",
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -45,7 +46,7 @@
       "endpoints": [
         "https://raw.githubusercontent.com/Arccalc/Poe2Run/main/updater.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJDRjRGRTFDNzc2QjIwNjcKUldSbklHdDNIUDcwTEZJc29GOE9weEx5ZllNMXBSZFl4ZzZhdmx4YXpyMUthYytJMUx1WjhNL0cK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFFRDAwNkZDOTExQ0Y3MjUKUldRbDl4eVIvQWJRSG1tMENoZ3dabnpGZStjN3FCcWpLYTJLcXBEd29OQktncndNelY1QUQ0bG0K"
     }
   }
 }

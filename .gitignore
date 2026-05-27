@@ -42,3 +42,7 @@ src-tauri/target
 # Local documentation & logs
 CONTEXT.md
 LOG.md
+route_speedrun_20260527_042506.json
+scratch/
+updater_key
+updater_key.pub

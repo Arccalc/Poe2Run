@@ -419,8 +419,6 @@ pub fn run() {
                 }
             });
 
-            let handle_clone = app.handle().clone();
-            
             #[cfg(desktop)]
             let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
 
