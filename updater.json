@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "notes": "Initial release with auto-updater setup",
+  "pub_date": "2026-05-27T07:50:00Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "SIGNATURE_OF_YOUR_ZIP_MSI_HERE",
+      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.1.0/PoE2SpeedrunTimer_0.1.0_x64_en-US.msi.zip"
+    }
+  }
+}

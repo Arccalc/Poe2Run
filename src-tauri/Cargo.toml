@@ -12,6 +12,7 @@ chrono = { version = "0.4", features = ["serde"] }
 notify = "6.1.1"
 thiserror = "1.0"
 rfd = "0.14"
+tauri-plugin-updater = "2"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

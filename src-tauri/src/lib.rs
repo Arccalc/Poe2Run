@@ -420,6 +420,10 @@ pub fn run() {
             });
 
             let handle_clone = app.handle().clone();
+            
+            #[cfg(desktop)]
+            let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
+
             app.on_menu_event(move |app_handle, event| {
                 let id = event.id().0.as_str();
                 match id {

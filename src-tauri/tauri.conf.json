@@ -38,5 +38,14 @@
     "beforeBuildCommand": "npm run build",
     "devUrl": "http://localhost:5173",
     "frontendDist": "../dist"
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://raw.githubusercontent.com/Arccalc/Poe2Run/main/updater.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJDRjRGRTFDNzc2QjIwNjcKUldSbklHdDNIUDcwTEZJc29GOE9weEx5ZllNMXBSZFl4ZzZhdmx4YXpyMUthYytJMUx1WjhNL0cK"
+    }
   }
 }
