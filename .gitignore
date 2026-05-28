@@ -42,7 +42,20 @@ src-tauri/target
 # Local documentation & logs
 CONTEXT.md
 LOG.md
-route_speedrun_20260527_042506.json
 scratch/
 updater_key
 updater_key.pub
+
+# PoE client log — personal, not part of project
+Client.txt
+test_logs/
+
+# Auto-saved route files (user-generated data)
+routes/
+route_*.json
+
+# Node lockfile (reproducible via npm install)
+package-lock.json
+
+# Vite type declarations (auto-generated)
+src/vite-env.d.ts
