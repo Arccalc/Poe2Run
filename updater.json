@@ -1,11 +1,11 @@
 {
-  "version": "0.2.6",
-  "notes": "Implemented zone-matching speedrun resume logic.",
-  "pub_date": "2026-05-28T20:30:00Z",
+  "version": "0.2.7",
+  "notes": "Fix resume run timing: app now initializes current zone from log history on startup, preventing elapsed time from pre-filling future zones.",
+  "pub_date": "2026-05-29T02:18:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVXdmWTkzdTM0N3c1Tkd1NUFIL2MyY2wwMTFFVnM2TEg0QlFZdXVYaWJMVnBCbTFUTmZCRUZlZWhRUDRDb3FxcGZQaWJUSHZ3eFhKWEp0VElkU29nTFE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMDAwMjQxCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjZfeDY0X2VuLVVTLm1zaQp0cmVWYlFoTGhjUHhhNzNWbWcyTTJwQ1FGRDJZSDZnQlg0QXpkVy9oOXloclJtZXRXbXJpWU40bjBwYXMrQUhRZmlRMURkMW1hVGJiMWZvTjZqYnBCZz09Cg==",
-      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.6/PoE2SpeedrunTimer_0.2.6_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTdvVUh1U0NJRUo5RTVGOHVDSGpwL3BCUXdPa3NJOTNWTnhEcFZqMFJVSGtLWkNGSnBwa3V5M0dmTWR6UC91WTlxVUpMNXQ4MnJweW1sS1BxSVcvckFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMDAzMTMwCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjdfeDY0X2VuLVVTLm1zaQpoblNYMGc5ektRMHh5NW9mZEg2SkFRL3p3enJUdGdFWEdqRWhMclI4dzBKaFBXdDd2T0h0R05ueTJRVzNDVW9xVUNhamZaNWJkU0l5WUNMckRTQ0dEdz09Cg==",
+      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.7/PoE2SpeedrunTimer_0.2.7_x64_en-US.msi"
     }
   }
 }
