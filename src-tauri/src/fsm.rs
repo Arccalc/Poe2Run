@@ -190,18 +190,41 @@ impl SpeedrunFsm {
         self.route_splits = route.splits.clone();
         
         let total_splits = self.route_splits.len();
-        let last_elapsed = self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0);
         
-        // Find the index where the run was actually stopped.
-        // We look for the first split in the trailing sequence that has the final elapsed_ms.
-        let mut last_completed_idx = 0;
-        for i in (0..total_splits).rev() {
-            if self.route_splits[i].elapsed_ms != last_elapsed {
-                last_completed_idx = i + 1;
-                break;
+        // 1. Try to find if the current zone in the game matches any split in the route.
+        let mut current_zone_idx = None;
+        if self.current_zone != "Unknown" && !self.current_zone.is_empty() {
+            for i in 0..total_splits {
+                if self.route_splits[i].zone_name.trim().eq_ignore_ascii_case(self.current_zone.trim()) {
+                    current_zone_idx = Some(i);
+                    break;
+                }
             }
         }
         
+        // 2. Determine last_completed_idx based on the matched zone or saved metadata.
+        let last_completed_idx = if let Some(idx) = current_zone_idx {
+            idx.saturating_sub(1)
+        } else if let Some(idx) = route.last_completed_split_index {
+            if idx < total_splits {
+                idx
+            } else {
+                total_splits.saturating_sub(1)
+            }
+        } else {
+            // Fallback for older files or completed reference routes
+            let last_elapsed = self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0);
+            let mut found_idx = 0;
+            for i in (0..total_splits).rev() {
+                if self.route_splits[i].elapsed_ms != last_elapsed {
+                    found_idx = i + 1;
+                    break;
+                }
+            }
+            found_idx
+        };
+        
+        // 3. Populate actual durations up to last_completed_idx, and clear the rest.
         self.visited_zones_set.clear();
         self.actual_durations.clear();
         for i in 0..total_splits {
@@ -218,12 +241,11 @@ impl SpeedrunFsm {
         }
         self.visited_split_order = (0..=last_completed_idx).collect();
         
-        // If there were actually completed splits, self.total_elapsed_ms is the elapsed time at the last completed split.
-        // Otherwise, it is 0.
+        // 4. Set the resume elapsed time.
         let resumed_elapsed_ms = if last_completed_idx < total_splits {
             self.route_splits[last_completed_idx].elapsed_ms
         } else {
-            last_elapsed
+            self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0)
         };
         self.total_elapsed_ms = resumed_elapsed_ms;
         
@@ -234,7 +256,14 @@ impl SpeedrunFsm {
         }
         self.route_file_path = route_path;
         
-        self.active_split_index = Some(last_completed_idx);
+        // 5. Set active split index to the resume point.
+        let active_idx = if last_completed_idx + 1 < total_splits {
+            last_completed_idx + 1
+        } else {
+            last_completed_idx
+        };
+        self.active_split_index = Some(active_idx);
+        
         self.is_paused = false;
         self.paused_at = None;
         self.total_paused_duration_ms = 0;
@@ -244,7 +273,9 @@ impl SpeedrunFsm {
         self.total_town_time_ms = 0;
         self.last_zone_name = None;
         self.last_zone_entry_time = None;
-        self.current_zone = "Unknown".to_string();
+        
+        // We keep self.current_zone intact (instead of resetting to "Unknown") 
+        // to preserve the matched zone view state.
         self.is_resumed_pending_start = true;
     }
     
@@ -312,10 +343,12 @@ impl SpeedrunFsm {
                 saved_message = "Run stopped. Warning: No splits were completed, so the route file was not updated.".to_string();
             } else if let Some(ref _route) = self.reference_route {
                 let completed_splits = self.get_completed_route();
+                let last_completed_split_index = self.actual_durations.iter().rposition(|x| x.is_some());
                 let new_route = Route {
                     name: format!("Speedrun_Run_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S")),
                     created_at: chrono::Utc::now(),
                     splits: completed_splits.clone(),
+                    last_completed_split_index,
                 };
                 
                 // Visual UI timing update
@@ -564,10 +597,12 @@ impl SpeedrunFsm {
     }
 
     pub fn export_route<P: AsRef<Path>>(&self, path: P) -> Result<(), std::io::Error> {
+        let last_completed_split_index = self.actual_durations.iter().rposition(|x| x.is_some());
         let route = Route {
             name: format!("Route_{}", Utc::now().format("%Y%m%d_%H%M%S")),
             created_at: Utc::now(),
             splits: self.route_splits.clone(),
+            last_completed_split_index,
         };
         let file = std::fs::File::create(path)?;
         serde_json::to_writer_pretty(file, &route)?;

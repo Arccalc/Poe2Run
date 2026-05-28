@@ -18,5 +18,7 @@ pub struct Route {
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub splits: Vec<Split>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_completed_split_index: Option<usize>,
 }
 

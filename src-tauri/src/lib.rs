@@ -68,6 +68,7 @@ fn start_run(
                     name: format!("Current_Session_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S")),
                     created_at: chrono::Utc::now(),
                     splits: fsm.route_splits.clone(),
+                    last_completed_split_index: None,
                 });
             } else {
                 return Err("No reference route available. Please configure a Route JSON path in Settings, or complete a Blind Run first to use the current session's splits.".to_string());
@@ -105,10 +106,12 @@ fn overwrite_route_splits(state: State<'_, AppState>) -> Result<String, String> 
             return Err("No splits completed in this run to overwrite.".to_string());
         }
         let completed_splits = fsm.get_completed_route();
+        let last_completed_split_index = fsm.actual_durations.iter().rposition(|x| x.is_some());
         
         // Теперь безопасно берем изменяемую ссылку
         if let Some(ref mut route) = fsm.reference_route {
             route.splits = completed_splits;
+            route.last_completed_split_index = last_completed_split_index;
             
             if let Some(ref path) = route_file_path {
                 let file = std::fs::File::create(path).map_err(|e| format!("Failed to create/overwrite route file: {}", e))?;
@@ -123,6 +126,7 @@ fn overwrite_route_splits(state: State<'_, AppState>) -> Result<String, String> 
                 name: format!("Route_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S")),
                 created_at: chrono::Utc::now(),
                 splits: route_splits,
+                last_completed_split_index: None,
             };
             let file = std::fs::File::create(path).map_err(|e| format!("Failed to create/overwrite route file: {}", e))?;
             serde_json::to_writer_pretty(file, &route).map_err(|e| format!("Failed to write JSON: {}", e))?;
