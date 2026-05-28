@@ -426,6 +426,18 @@ export default function App() {
     return `${sign}${seconds}s`;
   };
 
+  const formatActTime = (ms: number): string => {
+    const absoluteMs = Math.abs(ms);
+    const hours = Math.floor(absoluteMs / 3600000);
+    const minutes = Math.floor((absoluteMs % 3600000) / 60000);
+    const seconds = Math.floor((absoluteMs % 60000) / 1000);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    if (hours > 0) {
+      return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+    }
+    return `${pad(minutes)}:${pad(seconds)}`;
+  };
+
   useEffect(() => {
     invoke<FsmStatePayload>('get_state')
       .then((state) => setFsmState(state))
@@ -601,7 +613,19 @@ export default function App() {
     group.totalRefTimeMs += split.ref_duration_ms;
   });
 
-  const groupedSplits = Array.from(groupedSplitsMap.values()).sort((a, b) => {
+  const groupedSplits = Array.from(groupedSplitsMap.values()).map(group => {
+    group.splits.sort((a, b) => {
+      const aVisited = a.visit_number !== null && a.visit_number !== undefined;
+      const bVisited = b.visit_number !== null && b.visit_number !== undefined;
+      if (aVisited && bVisited) {
+        return a.visit_number! - b.visit_number!;
+      }
+      if (aVisited) return -1;
+      if (bVisited) return 1;
+      return a.originalIndex - b.originalIndex;
+    });
+    return group;
+  }).sort((a, b) => {
     const minA = Math.min(...a.splits.map(s => s.originalIndex));
     const minB = Math.min(...b.splits.map(s => s.originalIndex));
     return minA - minB;
@@ -771,8 +795,19 @@ export default function App() {
                       groupedSplits.map((group, groupIndex) => (
                         <div key={`group-${groupIndex}`} style={{ marginBottom: '8px' }}>
                           <div style={styles.actHeaderRow}>
-                            <span style={styles.actHeaderTitle}>{group.actName}</span>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}></div>
+                            <span style={styles.actHeaderTitle}>
+                              {group.actName}
+                              <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 'normal', textTransform: 'none', marginLeft: '6px', fontFamily: 'JetBrains Mono, monospace' }}>
+                                (Ref: {formatActTime(group.totalRefTimeMs)})
+                              </span>
+                            </span>
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                              {group.totalActTimeMs >= 120000 && (
+                                <span style={styles.splitDelta(group.totalActTimeMs - group.splits.reduce((acc, s) => s.actual_duration_ms !== null ? acc + s.ref_duration_ms : acc, 0))}>
+                                  {formatDelta(group.totalActTimeMs - group.splits.reduce((acc, s) => s.actual_duration_ms !== null ? acc + s.ref_duration_ms : acc, 0))}
+                                </span>
+                              )}
+                            </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                 <span style={styles.actHeaderTime(group.isActive)}>
                                 {formatTime(group.totalActTimeMs)}

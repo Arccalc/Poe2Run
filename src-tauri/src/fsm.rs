@@ -49,10 +49,7 @@ fn is_act_trigger_zone(zone_name: &str) -> bool {
         || name_lower == "vastiri outskirts"
         || name_lower == "sandswept marsh"
         || name_lower == "sandswept march"
-        || name_lower == "kingsmarch"
-        || name_lower == "the refuge"
-        || name_lower == "the khari bazaar"
-        || name_lower == "the glade"
+        || is_town_zone(zone_name)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -314,11 +311,18 @@ impl SpeedrunFsm {
             if self.actual_durations.iter().all(|x| x.is_none()) {
                 saved_message = "Run stopped. Warning: No splits were completed, so the route file was not updated.".to_string();
             } else if let Some(ref _route) = self.reference_route {
+                let completed_splits = self.get_completed_route();
                 let new_route = Route {
                     name: format!("Speedrun_Run_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S")),
                     created_at: chrono::Utc::now(),
-                    splits: self.get_completed_route(),
+                    splits: completed_splits.clone(),
                 };
+                
+                // Visual UI timing update
+                self.route_splits = completed_splits;
+                self.actual_durations = vec![None; self.route_splits.len()];
+                self.visited_split_order.clear();
+                self.active_split_index = None;
                 
                 let exe_dir = std::env::current_exe().ok().and_then(|p| p.parent().map(|parent| parent.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."));
                 let routes_dir = exe_dir.join("routes");

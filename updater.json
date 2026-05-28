@@ -1,11 +1,11 @@
 {
-  "version": "0.2.2",
-  "notes": "Added Ko-fi support button in the header.",
-  "pub_date": "2026-05-28T05:46:03Z",
+  "version": "0.2.5",
+  "notes": "Added chronological sorting, act reference times, act deltas, and split updates on stop/save.",
+  "pub_date": "2026-05-28T19:15:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTFFTXVwZkk5a0tSd3pzZURpa3pieG4rTGVkOXpsZXRvNjdzQzhNNEFncnZjazhnWWtkUXptSzFLZktIYTcxVmZ5UkMxcDlFKzNQZzZ5YVVGb2VNa0FVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTQ3MTYzCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjJfeDY0X2VuLVVTLm1zaQpsSXVjbUpvSWYyeXFGYXAxVkJDUC9HaWpFSXNaSVpoOWl4RU1mSXhXMElPM1NybUxnMUVKSWlEaWwwcmUrYm5zOElGLy9xemJaL1c1MGVwdS84eDJDUT09Cg==",
-      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.2/PoE2SpeedrunTimer_0.2.2_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVS8xVDZvZnRzV3RoRHd1Yld0UUZ0NURUcU5RdVBDTXZTRUM1dWVoa0NoNk1xaEEzV1RLcWdlNmpwQlhldVFNVFZBUXJ4UnIxMGpQckdhTFhWL014dXd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTk1ODE0CWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjVfeDY0X2VuLVVTLm1zaQoyeDRYa00weGdnUFpjS1l6VHdaTDVHNTVPYXRDcGxDams2RFZwZ3B4clVrajRZN1pXdVdyZ3ZBOFF3aTEvVm1Sd2tzUVV2VzFobXhCUU0yUEJ1a2RDdz09Cg==",
+      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.5/PoE2SpeedrunTimer_0.2.5_x64_en-US.msi"
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "productName": "PoE2SpeedrunTimer",
-  "version": "0.2.2",
+  "version": "0.2.5",
   "identifier": "com.poe2speedrun.timer",
   "bundle": {
     "active": true,
