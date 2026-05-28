@@ -30,8 +30,28 @@ impl LogParser {
             }
         };
 
-        // Seek to the end of the file on startup so we only capture new logs
-        let mut current_pos = file.seek(SeekFrom::End(0)).await?;
+        // Read the last 256KB of the file on startup to initialize the current zone
+        let len = file.metadata().await?.len();
+        let start_pos = len.saturating_sub(256 * 1024);
+        file.seek(SeekFrom::Start(start_pos)).await?;
+        
+        let mut init_buffer = vec![0u8; (len - start_pos) as usize];
+        file.read_exact(&mut init_buffer).await?;
+        let init_content = String::from_utf8_lossy(&init_buffer);
+        
+        let mut last_zone = None;
+        for line in init_content.lines() {
+            if let Some(event) = Self::parse_line(line) {
+                last_zone = Some(event);
+            }
+        }
+        if let Some((zone_name, timestamp)) = last_zone {
+            if let Err(e) = tx.send((zone_name, timestamp)).await {
+                eprintln!("Error sending initial zone event: {}", e);
+            }
+        }
+
+        let mut current_pos = len;
         let mut buffer = vec![0u8; 8192];
         let mut leftover = String::new();
 

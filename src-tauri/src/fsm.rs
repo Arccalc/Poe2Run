@@ -433,6 +433,8 @@ impl SpeedrunFsm {
     }
 
     pub fn handle_zone_transition(&mut self, zone_name: String, timestamp: DateTime<Utc>) {
+        self.current_zone = zone_name.clone();
+
         if self.mode == RunMode::Idle { return; }
         if self.is_paused { self.toggle_pause(); }
 
@@ -449,8 +451,6 @@ impl SpeedrunFsm {
             };
             if should_start { self.run_start_time = Some(timestamp); } else { return; }
         }
-
-        self.current_zone = zone_name.clone();
 
         // 1. АКУММУЛИРУЕМ ВРЕМЯ ПРОШЛОЙ ЗОНЫ
         if let Some(prev_zone) = self.last_zone_name.take() {
