@@ -62,3 +62,6 @@ src/vite-env.d.ts
 
 # Local test scripts
 poe-simulator.js
+
+# Local release staging folder (upload manually to GitHub Releases)
+github_release/
