@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import kofiLogo from './assets/cookielogo.png';
 
 interface FsmSplit {
   zone_name: string;
@@ -627,6 +628,13 @@ export default function App() {
           <div style={styles.logoGroup}>
             <div style={styles.logoDot} />
             <h1 style={styles.logoText}>POE2 TIMER</h1>
+            <button 
+              className="kofi-btn"
+              onClick={() => invoke('open_kofi_url').catch((e) => console.error(e))}
+              title="Support on Ko-fi"
+            >
+              <img src={kofiLogo} alt="Ko-fi" className="kofi-logo-img" />
+            </button>
           </div>
           <div style={styles.widgetControls}>
             <button 

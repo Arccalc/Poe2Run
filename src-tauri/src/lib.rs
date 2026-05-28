@@ -273,6 +273,22 @@ fn export_shadow_route(state: State<'_, AppState>, export_path: String) -> Resul
 }
 
 #[tauri::command]
+fn open_kofi_url() -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "https://ko-fi.com/pixelcraft404"])
+            .spawn()
+            .map(|_| ())
+            .map_err(|e| e.to_string())
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(())
+    }
+}
+
+#[tauri::command]
 fn get_zone_analytics(state: State<'_, AppState>) -> Result<std::collections::HashMap<String, ZoneAnalytics>, String> {
     let fsm = state.fsm.lock().map_err(|e| e.to_string())?;
     Ok(fsm.zone_analytics.clone())
@@ -435,7 +451,8 @@ pub fn run() {
             minimize_window,
             close_window,
             show_context_menu,
-            reorder_route_splits
+            reorder_route_splits,
+            open_kofi_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

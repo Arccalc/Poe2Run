@@ -111,3 +111,29 @@ body {
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.05);
 }
 
+/* Ko-fi integration with micro-animations */
+.kofi-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  opacity: 0.7;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kofi-btn:hover {
+  opacity: 1;
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 6px rgba(255, 95, 109, 0.6));
+}
+
+.kofi-logo-img {
+  height: 14px;
+  width: auto;
+  display: block;
+}
+
+
