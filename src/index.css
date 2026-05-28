@@ -111,29 +111,45 @@ body {
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.05);
 }
 
-/* Ko-fi integration with micro-animations */
+/* Ko-fi cookie button — noticeable but harmonious */
 .kofi-btn {
-  background: none;
-  border: none;
-  padding: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  margin-left: 8px;
-  opacity: 0.7;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 5px;
+  margin-left: 10px;
+  opacity: 0.85;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
 }
 
 .kofi-btn:hover {
   opacity: 1;
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 6px rgba(255, 95, 109, 0.6));
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.35);
+  transform: scale(1.07) translateY(-1px);
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25), 0 0 0 1px rgba(251, 191, 36, 0.15);
+}
+
+.kofi-btn:active {
+  transform: scale(0.97) translateY(0px);
+  transition-duration: 0.08s;
 }
 
 .kofi-logo-img {
-  height: 14px;
+  height: 22px;
   width: auto;
   display: block;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+  transition: filter 0.22s ease;
+}
+
+.kofi-btn:hover .kofi-logo-img {
+  filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
 

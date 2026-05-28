@@ -1,10 +1,10 @@
 {
   "version": "0.2.2",
   "notes": "Added Ko-fi support button in the header.",
-  "pub_date": "2026-05-28T05:34:55Z",
+  "pub_date": "2026-05-28T05:46:03Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTZMMnFvL2JUTlRuenJEcTB5VjBtWnlRbW5VcDNSZjJZcHVROXBwU204VmFZWWMwUHdOdW5JQUgwRTZwdHo5NkVuMlBBcGI2RThHZVFSWWprcUN3cEFRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTQ2NDk1CWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjJfeDY0X2VuLVVTLm1zaQpheXdjaSs5MGtZRFNCVTZSWmxyM1JZNlA2dzZMUkJNUFV1UEdPb1JVZUtZMlRoNWlsYzQvbGtOK1g3ZFBwTHhmYjh4VVFGblpWbmdqdWJHOXQvVjhBZz09Cg==",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTFFTXVwZkk5a0tSd3pzZURpa3pieG4rTGVkOXpsZXRvNjdzQzhNNEFncnZjazhnWWtkUXptSzFLZktIYTcxVmZ5UkMxcDlFKzNQZzZ5YVVGb2VNa0FVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTQ3MTYzCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjJfeDY0X2VuLVVTLm1zaQpsSXVjbUpvSWYyeXFGYXAxVkJDUC9HaWpFSXNaSVpoOWl4RU1mSXhXMElPM1NybUxnMUVKSWlEaWwwcmUrYm5zOElGLy9xemJaL1c1MGVwdS84eDJDUT09Cg==",
       "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.2/PoE2SpeedrunTimer_0.2.2_x64_en-US.msi"
     }
   }
