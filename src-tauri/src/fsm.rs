@@ -20,6 +20,9 @@ const TOWN_ZONES_ARRAY: &[&str] = &[
     "Clearfell Encampment",
     "Ardura Caravan",
     "Arduran Caravan",
+    "The Glade",
+    "The Khari Bazaar",
+    "The Refuge",
 ];
 
 fn is_town_zone(zone_name: &str) -> bool {
@@ -73,6 +76,7 @@ pub struct FsmSplit {
     pub actual_elapsed_ms: Option<i64>,
     pub actual_duration_ms: Option<i64>,
     pub delta_ms: Option<i64>,
+    pub visit_number: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -115,6 +119,7 @@ pub struct SpeedrunFsm {
     pub paused_at: Option<DateTime<Utc>>,
     pub total_paused_duration_ms: i64,
     pub is_muling: bool,
+    pub visited_split_order: Vec<usize>,
 }
 
 impl SpeedrunFsm {
@@ -142,6 +147,7 @@ impl SpeedrunFsm {
             paused_at: None,
             total_paused_duration_ms: 0,
             is_muling: false,
+            visited_split_order: Vec::new(),
         }
     }
 
@@ -165,6 +171,7 @@ impl SpeedrunFsm {
         self.total_paused_duration_ms = 0;
         self.route_file_path = reference_route_path;
         self.is_muling = is_muling;
+        self.visited_split_order.clear();
 
         if mode == RunMode::Speedrun {
             if let Some(ref route) = reference_route {
@@ -192,6 +199,7 @@ impl SpeedrunFsm {
             let duration = split.elapsed_ms - ref_entry;
             self.actual_durations.push(Some(duration));
         }
+        self.visited_split_order = (0..self.route_splits.len()).collect();
         self.active_split_index = None;
         
         let last_elapsed = self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0);
@@ -251,6 +259,67 @@ impl SpeedrunFsm {
             }
         }
         self.mode = RunMode::Idle;
+    }
+
+    pub fn stop_and_save_run(&mut self) -> Result<String, String> {
+        let mut saved_message = String::new();
+        let mode = self.mode;
+        let route_splits = self.route_splits.clone();
+        
+        if mode == RunMode::ShadowRecord && !route_splits.is_empty() {
+            let exe_dir = std::env::current_exe().ok().and_then(|p| p.parent().map(|parent| parent.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."));
+            let routes_dir = exe_dir.join("routes");
+            if let Err(e) = std::fs::create_dir_all(&routes_dir) {
+                return Err(format!("Failed to create routes directory. System Access Denied: {:?}", e));
+            } else {
+                let filename = format!("route_{}.json", chrono::Utc::now().format("%Y%m%d_%H%M%S"));
+                let file_path = routes_dir.join(&filename);
+                if let Err(e) = self.export_route(&file_path) {
+                    return Err(format!("Failed to auto-save route: {:?}", e));
+                } else {
+                    if let Ok(absolute_path) = std::fs::canonicalize(&file_path) {
+                        saved_message = absolute_path.to_string_lossy().to_string();
+                    } else {
+                        saved_message = file_path.to_string_lossy().to_string();
+                    }
+                }
+            }
+        } else if mode == RunMode::Speedrun {
+            if self.actual_durations.iter().all(|x| x.is_none()) {
+                saved_message = "Run stopped. Warning: No splits were completed, so the route file was not updated.".to_string();
+            } else if let Some(ref _route) = self.reference_route {
+                let new_route = Route {
+                    name: format!("Speedrun_Run_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S")),
+                    created_at: chrono::Utc::now(),
+                    splits: self.get_completed_route(),
+                };
+                
+                let exe_dir = std::env::current_exe().ok().and_then(|p| p.parent().map(|parent| parent.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."));
+                let routes_dir = exe_dir.join("routes");
+                if let Err(e) = std::fs::create_dir_all(&routes_dir) {
+                    return Err(format!("Failed to create routes directory. System Access Denied: {:?}", e));
+                } else {
+                    let filename = format!("route_speedrun_{}.json", chrono::Utc::now().format("%Y%m%d_%H%M%S"));
+                    let file_path = routes_dir.join(&filename);
+                    if let Ok(file) = std::fs::File::create(&file_path) {
+                        if serde_json::to_writer_pretty(file, &new_route).is_ok() {
+                            if let Ok(absolute_path) = std::fs::canonicalize(&file_path) {
+                                saved_message = absolute_path.to_string_lossy().to_string();
+                            } else {
+                                saved_message = file_path.to_string_lossy().to_string();
+                            }
+                        } else {
+                            return Err("Failed to serialize route to JSON.".to_string());
+                        }
+                    } else {
+                        return Err("Failed to create file in routes directory.".to_string());
+                    }
+                }
+            }
+        }
+
+        self.stop_run();
+        if !saved_message.is_empty() { Ok(saved_message) } else { Ok("Run stopped".to_string()) }
     }
 
     pub fn toggle_pause(&mut self) {
@@ -374,6 +443,9 @@ impl SpeedrunFsm {
 
             if let Some(idx) = found_idx {
                 self.active_split_index = Some(idx);
+                if !self.visited_split_order.contains(&idx) {
+                    self.visited_split_order.push(idx);
+                }
             } else {
                 // ДОБАВЛЯЕМ НОВУЮ СРАЗУ ПОСЛЕ ТЕКУЩЕЙ (БЕЗ ДУБЛИКАТОВ)
                 let insert_pos = self.active_split_index.map(|idx| idx + 1).unwrap_or(self.route_splits.len());
@@ -384,6 +456,13 @@ impl SpeedrunFsm {
                 self.route_splits.insert(insert_pos, Split { zone_name: zone_name.clone(), elapsed_ms: ref_elapsed });
                 self.actual_durations.insert(insert_pos, None);
                 self.active_split_index = Some(insert_pos);
+
+                for order_idx in &mut self.visited_split_order {
+                    if *order_idx >= insert_pos {
+                        *order_idx += 1;
+                    }
+                }
+                self.visited_split_order.push(insert_pos);
             }
         } else {
             self.active_split_index = None;
@@ -420,6 +499,14 @@ impl SpeedrunFsm {
                 self.active_split_index = None;
             }
         }
+
+        let mut new_visited_order = Vec::new();
+        for &old_idx in &self.visited_split_order {
+            if let Some(new_idx) = new_indices.iter().position(|&x| x == old_idx) {
+                new_visited_order.push(new_idx);
+            }
+        }
+        self.visited_split_order = new_visited_order;
 
         let mut old_durations = Vec::with_capacity(self.route_splits.len());
         for i in 0..self.route_splits.len() {
@@ -489,6 +576,8 @@ impl SpeedrunFsm {
                 if self.mode == RunMode::Speedrun { Some(act - ref_duration_ms) } else { None }
             } else { None };
 
+            let visit_number = self.visited_split_order.iter().position(|&idx| idx == i).map(|pos| pos + 1);
+
             route_splits.push(FsmSplit {
                 zone_name: self.route_splits[i].zone_name.clone(),
                 ref_elapsed_ms: ref_exit,
@@ -496,6 +585,7 @@ impl SpeedrunFsm {
                 actual_elapsed_ms: None, 
                 actual_duration_ms,
                 delta_ms,
+                visit_number,
             });
         }
 

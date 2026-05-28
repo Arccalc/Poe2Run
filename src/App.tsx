@@ -9,6 +9,7 @@ interface FsmSplit {
   actual_elapsed_ms: number | null;
   actual_duration_ms: number | null;
   delta_ms: number | null;
+  visit_number: number | null;
 }
 
 interface FsmStatePayload {
@@ -179,10 +180,12 @@ type SplitGroup = {
   isActive: boolean;
   isCompleted: boolean;
   totalActTimeMs: number;
+  totalRefTimeMs: number;
 };
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'timer' | 'analytics' | 'settings'>('timer');
+  const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({});
   const [clientPath, setClientPath] = useState<string>(() => {
     return localStorage.getItem('poe_client_path') || '';
   });
@@ -283,6 +286,11 @@ export default function App() {
   const draggedIndexRef = useRef<number | null>(null);
   const isEditModeRef = useRef<boolean>(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const activeSplitRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    activeSplitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [fsmState.current_split_index]);
 
   // Sync isEditMode to a ref to avoid stale closures in event handlers
   useEffect(() => {
@@ -572,6 +580,7 @@ export default function App() {
         isActive: false,
         isCompleted: true,
         totalActTimeMs: 0,
+        totalRefTimeMs: 0,
       });
     }
 
@@ -588,6 +597,7 @@ export default function App() {
     if (split.actual_duration_ms !== null) {
       group.totalActTimeMs += split.actual_duration_ms;
     }
+    group.totalRefTimeMs += split.ref_duration_ms;
   });
 
   const groupedSplits = Array.from(groupedSplitsMap.values()).sort((a, b) => {
@@ -780,6 +790,7 @@ export default function App() {
                               return (
                                 <div 
                                   key={split.originalIndex} 
+                                  ref={isActive ? activeSplitRef : null}
                                   style={styles.splitRow(isActive, isCompleted, isDragged, isEditMode)}
                                   draggable={isEditMode && !isActTriggerZone(split.zone_name)}
                                   onDragStart={(e) => handleDragStart(e, split.originalIndex)}
@@ -795,7 +806,9 @@ export default function App() {
                                       </span>
                                     )}
                                     <span style={styles.splitIndex}>
-                                      {(split.originalIndex + 1).toString().padStart(2, '0')}
+                                      {split.visit_number !== null && split.visit_number !== undefined
+                                        ? split.visit_number.toString().padStart(2, '0')
+                                        : '--'}
                                     </span>
                                     <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                                       <span style={styles.splitName}>{split.zone_name}</span>
@@ -893,6 +906,7 @@ export default function App() {
         {activeTab === 'analytics' && (() => {
           const validSplits = fsmState.route_splits.filter(s => s.ref_duration_ms > 0 || s.actual_duration_ms !== null);
           const globalMaxMs = Math.max(1, ...validSplits.map(s => Math.max(s.ref_duration_ms, s.actual_duration_ms || 0)));
+          const maxActMs = Math.max(1, ...groupedSplits.map(g => Math.max(g.totalRefTimeMs, g.totalActTimeMs)));
 
           return (
             <div style={styles.analyticsLayout} className="glass-panel">
@@ -906,42 +920,95 @@ export default function App() {
                     No segment data available. Complete segments to view charts.
                   </div>
                 ) : (
-                  validSplits.map((split, idx) => {
-                    const refMs = split.ref_duration_ms;
-                    const actMs = split.actual_duration_ms || 0;
-                    const isSlower = actMs > refMs;
-                    
-                    const actualColor = isSlower ? '#ef4444' : '#10b981'; // Red if slower, Green if faster
-                    const refColor = 'rgba(255, 255, 255, 0.2)'; // Gray background for reference
+                  groupedSplits.map((group, groupIdx) => {
+                    const groupValidSplits = group.splits.filter(s => s.ref_duration_ms > 0 || s.actual_duration_ms !== null);
+                    if (groupValidSplits.length === 0) return null;
 
-                    const refWidth = `${(refMs / globalMaxMs) * 100}%`;
-                    const actWidth = `${(actMs / globalMaxMs) * 100}%`;
+                    const refActMs = group.totalRefTimeMs;
+                    const actActMs = group.totalActTimeMs;
+                    const isActSlower = actActMs > refActMs;
+                    const actActualColor = isActSlower ? '#ef4444' : '#10b981';
+                    const actRefColor = 'rgba(255, 255, 255, 0.2)';
+                    const refActWidth = `${(refActMs / maxActMs) * 98}%`;
+                    const actActWidth = `${(actActMs / maxActMs) * 98}%`;
+                    const isExpanded = !!expandedActs[group.actName];
+                    const actDelta = actActMs - refActMs;
 
                     return (
-                      <div key={idx} style={styles.chartRow}>
-                        <div style={styles.chartLabels}>
-                          <span style={styles.chartZoneName}>{split.zone_name}</span>
-                          <span style={styles.chartTimeDiff(isSlower)}>
-                            {split.delta_ms !== null && refMs > 0 ? formatDelta(split.delta_ms) : ''}
-                          </span>
+                      <div key={groupIdx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div 
+                          onClick={() => setExpandedActs(prev => ({ ...prev, [group.actName]: !prev[group.actName] }))}
+                          style={styles.chartActHeader}
+                          className="chart-act-header"
+                        >
+                          <div style={styles.chartActLabels}>
+                            <span style={styles.chartActName}>
+                              {isExpanded ? '▼ ' : '▶ '} {group.actName}
+                            </span>
+                            <span style={styles.chartActTimeDiff(isActSlower)}>
+                              {refActMs > 0 ? formatDelta(actDelta) : ''}
+                            </span>
+                          </div>
+                          <div style={styles.barTrackAct}>
+                            {isActSlower ? (
+                              <>
+                                <div style={styles.bar(actActWidth, actActualColor, 1)} title={`Actual: ${formatTime(actActMs)}`} />
+                                <div style={styles.bar(refActWidth, actRefColor, 2)} title={`Reference: ${formatTime(refActMs)}`} />
+                              </>
+                            ) : (
+                              <>
+                                <div style={styles.bar(refActWidth, actRefColor, 1)} title={`Reference: ${formatTime(refActMs)}`} />
+                                <div style={styles.bar(actActWidth, actActualColor, 2)} title={`Actual: ${formatTime(actActMs)}`} />
+                              </>
+                            )}
+                          </div>
+                          <div style={styles.chartActTimeSubtext}>
+                            <span style={{ color: '#94a3b8' }}>Ref: {formatTime(refActMs)}</span>
+                            <span style={{ color: actActualColor }}>Act: {formatTime(actActMs)}</span>
+                          </div>
                         </div>
-                        <div style={styles.barTrack}>
-                          {isSlower ? (
-                            <>
-                              <div style={styles.bar(actWidth, actualColor, 1)} title={`Actual: ${formatTime(actMs)}`} />
-                              <div style={styles.bar(refWidth, refColor, 2)} title={`Reference: ${formatTime(refMs)}`} />
-                            </>
-                          ) : (
-                            <>
-                              <div style={styles.bar(refWidth, refColor, 1)} title={`Reference: ${formatTime(refMs)}`} />
-                              <div style={styles.bar(actWidth, actualColor, 2)} title={`Actual: ${formatTime(actMs)}`} />
-                            </>
-                          )}
-                        </div>
-                        <div style={styles.chartTimeSubtext}>
-                          <span style={{ color: '#94a3b8' }}>Ref: {formatTime(refMs)}</span>
-                          <span style={{ color: actualColor }}>Act: {formatTime(actMs)}</span>
-                        </div>
+
+                        {isExpanded && (
+                          <div style={styles.chartActChildren}>
+                            {groupValidSplits.map((split, zoneIdx) => {
+                              const refMs = split.ref_duration_ms;
+                              const actMs = split.actual_duration_ms || 0;
+                              const isSlower = actMs > refMs;
+                              const actualColor = isSlower ? '#ef4444' : '#10b981';
+                              const refColor = 'rgba(255, 255, 255, 0.15)';
+                              const refWidth = `${(refMs / globalMaxMs) * 98}%`;
+                              const actWidth = `${(actMs / globalMaxMs) * 98}%`;
+
+                              return (
+                                <div key={zoneIdx} style={styles.chartRowChild}>
+                                  <div style={styles.chartLabels}>
+                                    <span style={styles.chartZoneNameChild}>{split.zone_name}</span>
+                                    <span style={styles.chartTimeDiff(isSlower)}>
+                                      {split.delta_ms !== null && refMs > 0 ? formatDelta(split.delta_ms) : ''}
+                                    </span>
+                                  </div>
+                                  <div style={styles.barTrackChild}>
+                                    {isSlower ? (
+                                      <>
+                                        <div style={styles.bar(actWidth, actualColor, 1)} title={`Actual: ${formatTime(actMs)}`} />
+                                        <div style={styles.bar(refWidth, refColor, 2)} title={`Reference: ${formatTime(refMs)}`} />
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div style={styles.bar(refWidth, refColor, 1)} title={`Reference: ${formatTime(refMs)}`} />
+                                        <div style={styles.bar(actWidth, actualColor, 2)} title={`Actual: ${formatTime(actMs)}`} />
+                                      </>
+                                    )}
+                                  </div>
+                                  <div style={styles.chartTimeSubtextChild}>
+                                    <span style={{ color: '#94a3b8' }}>Ref: {formatTime(refMs)}</span>
+                                    <span style={{ color: actualColor }}>Act: {formatTime(actMs)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })
@@ -1671,4 +1738,82 @@ const styles = {
     outline: 'none',
     boxShadow: `0 4px 6px -1px ${color}1A`,
   }),
+  chartActHeader: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '6px',
+    padding: '10px 12px',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    outline: 'none',
+    marginBottom: '4px',
+  },
+  chartActLabels: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chartActName: {
+    fontSize: '13px',
+    fontWeight: 700,
+    color: '#38bdf8',
+    letterSpacing: '0.5px',
+  },
+  chartActTimeDiff: (isSlower: boolean) => ({
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '11px',
+    fontWeight: 800 as const,
+    color: isSlower ? '#ef4444' : '#10b981',
+  }),
+  barTrackAct: {
+    position: 'relative' as const,
+    height: '16px',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: '6px',
+    overflow: 'hidden',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+  },
+  chartActTimeSubtext: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '10px',
+  },
+  chartActChildren: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+    paddingLeft: '16px',
+    borderLeft: '1px solid rgba(56, 189, 248, 0.15)',
+    marginLeft: '6px',
+    marginTop: '4px',
+    marginBottom: '8px',
+  },
+  chartRowChild: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '3px',
+  },
+  chartZoneNameChild: {
+    fontSize: '11px',
+    fontWeight: 500,
+    color: '#e2e8f0',
+  },
+  barTrackChild: {
+    position: 'relative' as const,
+    height: '12px',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    borderRadius: '3px',
+    overflow: 'hidden',
+    border: '1px solid rgba(255, 255, 255, 0.04)',
+  },
+  chartTimeSubtextChild: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '8.5px',
+  },
 };

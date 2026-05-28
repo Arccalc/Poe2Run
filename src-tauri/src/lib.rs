@@ -85,68 +85,10 @@ fn start_run(
 #[tauri::command]
 fn stop_run(app: AppHandle, state: State<'_, AppState>) -> Result<String, String> {
     let mut fsm = state.fsm.lock().map_err(|e| e.to_string())?;
-    
-    let mut saved_message = String::new();
-    let mode = fsm.mode;
-    let route_splits = fsm.route_splits.clone();
-    
-    if mode == RunMode::ShadowRecord && !route_splits.is_empty() {
-        let exe_dir = std::env::current_exe().ok().and_then(|p| p.parent().map(|parent| parent.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."));
-        let routes_dir = exe_dir.join("routes");
-        if let Err(e) = std::fs::create_dir_all(&routes_dir) {
-            return Err(format!("Failed to create routes directory. System Access Denied: {:?}", e));
-        } else {
-            let filename = format!("route_{}.json", chrono::Utc::now().format("%Y%m%d_%H%M%S"));
-            let file_path = routes_dir.join(&filename);
-            if let Err(e) = fsm.export_route(&file_path) {
-                return Err(format!("Failed to auto-save route: {:?}", e));
-            } else {
-                if let Ok(absolute_path) = std::fs::canonicalize(&file_path) {
-                    saved_message = absolute_path.to_string_lossy().to_string();
-                } else {
-                    saved_message = file_path.to_string_lossy().to_string();
-                }
-            }
-        }
-    } else if mode == RunMode::Speedrun {
-        if fsm.actual_durations.iter().all(|x| x.is_none()) {
-            saved_message = "Run stopped. Warning: No splits were completed, so the route file was not updated.".to_string();
-        } else if let Some(ref _route) = fsm.reference_route {
-            let new_route = Route {
-                name: format!("Speedrun_Run_{}", chrono::Utc::now().format("%Y%m%d_%H%M%S")),
-                created_at: chrono::Utc::now(),
-                splits: fsm.get_completed_route(),
-            };
-            
-            let exe_dir = std::env::current_exe().ok().and_then(|p| p.parent().map(|parent| parent.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."));
-            let routes_dir = exe_dir.join("routes");
-            if let Err(e) = std::fs::create_dir_all(&routes_dir) {
-                return Err(format!("Failed to create routes directory. System Access Denied: {:?}", e));
-            } else {
-                let filename = format!("route_speedrun_{}.json", chrono::Utc::now().format("%Y%m%d_%H%M%S"));
-                let file_path = routes_dir.join(&filename);
-                if let Ok(file) = std::fs::File::create(&file_path) {
-                    if serde_json::to_writer_pretty(file, &new_route).is_ok() {
-                        if let Ok(absolute_path) = std::fs::canonicalize(&file_path) {
-                            saved_message = absolute_path.to_string_lossy().to_string();
-                        } else {
-                            saved_message = file_path.to_string_lossy().to_string();
-                        }
-                    } else {
-                        return Err("Failed to serialize route to JSON.".to_string());
-                    }
-                } else {
-                    return Err("Failed to create file in routes directory.".to_string());
-                }
-            }
-        }
-    }
-
-    fsm.stop_run();
+    let saved_message = fsm.stop_and_save_run()?;
     let payload = fsm.generate_payload();
     let _ = app.emit("fsm-state-update", payload);
-
-    if !saved_message.is_empty() { Ok(saved_message) } else { Ok("Run stopped".to_string()) }
+    Ok(saved_message)
 }
 
 #[tauri::command]
@@ -366,16 +308,27 @@ fn set_client_path(
         });
 
         while let Some((zone_name, timestamp)) = rx.recv().await {
+            let mut save_msg = None;
             let payload = {
                 let mut fsm = match fsm_clone.lock() {
                     Ok(guard) => guard,
                     Err(_) => continue,
                 };
-                fsm.handle_zone_transition(zone_name, timestamp);
+                fsm.handle_zone_transition(zone_name.clone(), timestamp);
+                
+                if zone_name.trim().eq_ignore_ascii_case("ziggurat refuge") && fsm.mode != RunMode::Idle {
+                    if let Ok(msg) = fsm.stop_and_save_run() {
+                        save_msg = Some(msg);
+                    }
+                }
+                
                 fsm.generate_payload()
             };
 
             let _ = app_clone.emit("fsm-state-update", payload);
+            if let Some(msg) = save_msg {
+                let _ = app_clone.emit("run-auto-stopped", msg);
+            }
         }
     });
 
