@@ -1,6 +1,0 @@
-2026/05/26 04:08:54 12345678 7fbd122e [INFO Client 99999] [SCENE] Set Source [Clearfell Encampment]
-2026/05/26 04:08:57 12345678 7fbd122e [INFO Client 99999] [SCENE] Set Source [The Riverbank]
-2026/05/26 04:09:02 12345678 7fbd122e [INFO Client 99999] [SCENE] Set Source [Clearfell]
-2026/05/26 04:09:08 12345678 7fbd122e [INFO Client 99999] [SCENE] Set Source [Osgoth]
-2026/05/26 04:09:12 12345678 7fbd122e [INFO Client 99999] [SCENE] Set Source [Osgoth Tunnels]
-2026/05/26 04:09:17 12345678 7fbd122e [INFO Client 99999] [SCENE] Set Source [The Depths]
