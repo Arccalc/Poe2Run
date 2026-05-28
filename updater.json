@@ -1,10 +1,10 @@
 {
   "version": "0.2.0",
   "notes": "Added dynamic numbering, auto-stop on Ziggurat Refuge, collapsible stats, and fixes for Interlude towns.",
-  "pub_date": "2026-05-28T03:14:33Z",
+  "pub_date": "2026-05-28T03:23:55Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTZnbURNMlRkQkRYSmd2Q0FHckVBVEdnUUNUOHg4bDBSZ0g0VlVNSkxEK21UOUZGSXVRMmJRNWRjNUpuQ1djMjgzNEdqczFrVThiTW9tSlRZdElmMGcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTM4MDM1CWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjBfeDY0X2VuLVVTLm1zaQo2TTZlbmVNOVY4cGVmQ3crRnRxeW9yRkdZdUMwYXFpcTM2SVBXQ2NibHY3TXBwNkpFRnMrYVBaRkViVjhtZGFLNmtqdTI5Y0ZmRTZDMFdMVTYrSzRDQT09Cg==",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTc2VHB4THFmTGZoVTBvRjcrMmVXZmpRMXVPTUo1ak0yNVZhY3VxcVlmWVcwSHEybGxHOENacHZCdWhxbW43Z1B3Mk5CdUNNdWxWWHlid09GWXV3SkFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTM4NjMzCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjBfeDY0X2VuLVVTLm1zaQpaRG5SUkYyU0VSQVN0L3o2UTZGZWhEaG9NN3hodGRuUzVyak0yZ3RxTGZiMnI1VHZabGhQL3d5VzQzaU1kdm5EbkU3SWFMUlIrZ3JOSmhlN25oR3NCZz09Cg==",
       "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.0/PoE2SpeedrunTimer_0.2.0_x64_en-US.msi"
     }
   }

@@ -373,7 +373,15 @@ pub fn run() {
             });
 
             #[cfg(desktop)]
-            let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
+            {
+                let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
+                let handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = check_for_updates(handle).await {
+                        eprintln!("Failed to check for updates: {}", e);
+                    }
+                });
+            }
 
             app.on_menu_event(move |app_handle, event| {
                 let id = event.id().0.as_str();
@@ -431,4 +439,27 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(desktop)]
+async fn check_for_updates(app: tauri::AppHandle) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    use tauri_plugin_updater::UpdaterExt;
+    
+    let updater = app.updater_builder().build()?;
+    if let Some(update) = updater.check().await? {
+        let update_version = update.version.clone();
+        let confirmed = tauri::async_runtime::spawn_blocking(move || {
+            rfd::MessageDialog::new()
+                .set_title("Update Available")
+                .set_description(&format!("A new version (v{}) of PoE2 Speedrun Timer is available. Would you like to download and install it now?", update_version))
+                .set_buttons(rfd::MessageButtons::YesNo)
+                .show() == rfd::MessageDialogResult::Yes
+        }).await?;
+
+        if confirmed {
+            update.download_and_install(|_chunk_length, _content_length| {}, || {}).await?;
+            app.restart();
+        }
+    }
+    Ok(())
 }
