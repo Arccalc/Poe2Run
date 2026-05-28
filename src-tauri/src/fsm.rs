@@ -120,6 +120,7 @@ pub struct SpeedrunFsm {
     pub total_paused_duration_ms: i64,
     pub is_muling: bool,
     pub visited_split_order: Vec<usize>,
+    pub is_resumed_pending_start: bool,
 }
 
 impl SpeedrunFsm {
@@ -148,6 +149,7 @@ impl SpeedrunFsm {
             total_paused_duration_ms: 0,
             is_muling: false,
             visited_split_order: Vec::new(),
+            is_resumed_pending_start: false,
         }
     }
 
@@ -182,6 +184,7 @@ impl SpeedrunFsm {
         } else {
             self.reference_route = None;
         }
+        self.is_resumed_pending_start = false;
     }
 
     pub fn resume_run(&mut self, route: Route, route_path: Option<String>, mode: RunMode) {
@@ -189,21 +192,43 @@ impl SpeedrunFsm {
         self.run_start_time = None;
         self.route_splits = route.splits.clone();
         
+        let total_splits = self.route_splits.len();
+        let last_elapsed = self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0);
+        
+        // Find the index where the run was actually stopped.
+        // We look for the first split in the trailing sequence that has the final elapsed_ms.
+        let mut last_completed_idx = 0;
+        for i in (0..total_splits).rev() {
+            if self.route_splits[i].elapsed_ms != last_elapsed {
+                last_completed_idx = i + 1;
+                break;
+            }
+        }
+        
         self.visited_zones_set.clear();
         self.actual_durations.clear();
-        for i in 0..self.route_splits.len() {
+        for i in 0..total_splits {
             let split = &self.route_splits[i];
-            self.visited_zones_set.insert(split.zone_name.clone());
-            
             let ref_entry = if i == 0 { 0 } else { self.route_splits[i - 1].elapsed_ms };
-            let duration = split.elapsed_ms - ref_entry;
-            self.actual_durations.push(Some(duration));
+            
+            if i <= last_completed_idx {
+                self.visited_zones_set.insert(split.zone_name.clone());
+                let duration = split.elapsed_ms - ref_entry;
+                self.actual_durations.push(Some(duration));
+            } else {
+                self.actual_durations.push(None);
+            }
         }
-        self.visited_split_order = (0..self.route_splits.len()).collect();
-        self.active_split_index = None;
+        self.visited_split_order = (0..=last_completed_idx).collect();
         
-        let last_elapsed = self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0);
-        self.total_elapsed_ms = last_elapsed;
+        // If there were actually completed splits, self.total_elapsed_ms is the elapsed time at the last completed split.
+        // Otherwise, it is 0.
+        let resumed_elapsed_ms = if last_completed_idx < total_splits {
+            self.route_splits[last_completed_idx].elapsed_ms
+        } else {
+            last_elapsed
+        };
+        self.total_elapsed_ms = resumed_elapsed_ms;
         
         if mode == RunMode::Speedrun {
             self.reference_route = Some(route);
@@ -212,7 +237,7 @@ impl SpeedrunFsm {
         }
         self.route_file_path = route_path;
         
-        self.active_split_index = None;
+        self.active_split_index = Some(last_completed_idx);
         self.is_paused = false;
         self.paused_at = None;
         self.total_paused_duration_ms = 0;
@@ -223,6 +248,7 @@ impl SpeedrunFsm {
         self.last_zone_name = None;
         self.last_zone_entry_time = None;
         self.current_zone = "Unknown".to_string();
+        self.is_resumed_pending_start = true;
     }
     
     // Вспомогательная функция сборки финального роута
@@ -372,6 +398,11 @@ impl SpeedrunFsm {
     pub fn handle_zone_transition(&mut self, zone_name: String, timestamp: DateTime<Utc>) {
         if self.mode == RunMode::Idle { return; }
         if self.is_paused { self.toggle_pause(); }
+
+        if self.is_resumed_pending_start {
+            self.run_start_time = Some(timestamp - chrono::Duration::milliseconds(self.total_elapsed_ms));
+            self.is_resumed_pending_start = false;
+        }
 
         if self.run_start_time.is_none() {
             let should_start = match self.mode {

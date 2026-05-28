@@ -904,7 +904,7 @@ export default function App() {
         )}
 
         {activeTab === 'analytics' && (() => {
-          const validSplits = fsmState.route_splits.filter(s => s.ref_duration_ms > 0 || s.actual_duration_ms !== null);
+          const validSplits = fsmState.route_splits;
           const globalMaxMs = Math.max(1, ...validSplits.map(s => Math.max(s.ref_duration_ms, s.actual_duration_ms || 0)));
           const maxActMs = Math.max(1, ...groupedSplits.map(g => Math.max(g.totalRefTimeMs, g.totalActTimeMs)));
 
@@ -921,8 +921,7 @@ export default function App() {
                   </div>
                 ) : (
                   groupedSplits.map((group, groupIdx) => {
-                    const groupValidSplits = group.splits.filter(s => s.ref_duration_ms > 0 || s.actual_duration_ms !== null);
-                    if (groupValidSplits.length === 0) return null;
+                    const groupValidSplits = group.splits;
 
                     const refActMs = group.totalRefTimeMs;
                     const actActMs = group.totalActTimeMs;
