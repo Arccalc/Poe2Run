@@ -202,28 +202,31 @@ impl SpeedrunFsm {
             }
         }
         
-        // 2. Determine last_completed_idx based on the matched zone or saved metadata.
-        let last_completed_idx = if let Some(idx) = current_zone_idx {
-            idx.saturating_sub(1)
-        } else if let Some(idx) = route.last_completed_split_index {
-            if idx < total_splits {
-                idx
-            } else {
-                total_splits.saturating_sub(1)
-            }
+        // 2. Determine last_completed_idx (which splits to pre-fill as "done").
+        //    Priority order:
+        //    1. last_completed_split_index from save file — exact metadata, highest trust.
+        //    2. current_zone_idx — for old files without saved metadata.
+        //       The player is CURRENTLY IN this zone → the last fully EXITED zone is idx-1.
+        //    3. Repeated-value fallback — last resort for very old files.
+        let last_completed_idx = if let Some(saved_idx) = route.last_completed_split_index {
+            saved_idx.min(total_splits.saturating_sub(1))
+        } else if let Some(zone_idx) = current_zone_idx {
+            // Player is in this zone now; the previous session stopped here.
+            // actual_duration for this zone was never finalized → last completed is zone-1.
+            zone_idx.saturating_sub(1)
         } else {
-            // Fallback for older files or completed reference routes
+            // Fallback for older files without last_completed_split_index
             let last_elapsed = self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0);
             let mut found_idx = 0;
             for i in (0..total_splits).rev() {
                 if self.route_splits[i].elapsed_ms != last_elapsed {
-                    found_idx = i + 1;
+                    found_idx = i.min(total_splits.saturating_sub(1));
                     break;
                 }
             }
             found_idx
         };
-        
+
         // 3. Populate actual durations up to last_completed_idx, and clear the rest.
         self.visited_zones_set.clear();
         self.actual_durations.clear();
@@ -242,8 +245,13 @@ impl SpeedrunFsm {
         self.visited_split_order = (0..=last_completed_idx).collect();
         
         // 4. Set the resume elapsed time.
-        let resumed_elapsed_ms = if last_completed_idx < total_splits {
-            self.route_splits[last_completed_idx].elapsed_ms
+        //    Timer start = where the player IS NOW (current zone from 256KB tail),
+        //    capped to one zone past last_completed so we don't overshoot.
+        let timer_start_idx = current_zone_idx
+            .map(|z| z.min(last_completed_idx.saturating_add(1)).min(total_splits.saturating_sub(1)))
+            .unwrap_or(last_completed_idx);
+        let resumed_elapsed_ms = if timer_start_idx < total_splits {
+            self.route_splits[timer_start_idx].elapsed_ms
         } else {
             self.route_splits.last().map(|s| s.elapsed_ms).unwrap_or(0)
         };
@@ -256,13 +264,10 @@ impl SpeedrunFsm {
         }
         self.route_file_path = route_path;
         
-        // 5. Set active split index to the resume point.
-        let active_idx = if last_completed_idx + 1 < total_splits {
-            last_completed_idx + 1
-        } else {
-            last_completed_idx
-        };
+        // 5. Set active split index to one past the timer start (next zone to time).
+        let active_idx = (timer_start_idx + 1).min(total_splits.saturating_sub(1));
         self.active_split_index = Some(active_idx);
+
         
         self.is_paused = false;
         self.paused_at = None;
@@ -284,11 +289,11 @@ impl SpeedrunFsm {
         let mut new_splits = Vec::new();
         let mut cumulative = 0;
         for i in 0..self.route_splits.len() {
-            let dur = self.actual_durations.get(i).copied().flatten().unwrap_or_else(|| {
-                let r_entry = if i == 0 { 0 } else { self.route_splits[i-1].elapsed_ms };
-                let r_exit = self.route_splits[i].elapsed_ms;
-                r_exit - r_entry
-            });
+            // For unvisited splits (actual_durations[i] == None), use 0 duration.
+            // This means their elapsed_ms will equal the last completed split's elapsed_ms,
+            // which allows the fallback resume logic (repeated-value detection) to correctly
+            // identify the run's stopping point when last_completed_split_index is absent.
+            let dur = self.actual_durations.get(i).copied().flatten().unwrap_or(0);
             cumulative += dur;
             new_splits.push(Split {
                 zone_name: self.route_splits[i].zone_name.clone(),
@@ -297,6 +302,7 @@ impl SpeedrunFsm {
         }
         new_splits
     }
+
 
     pub fn stop_run(&mut self) {
         let now = Utc::now();
@@ -470,7 +476,21 @@ impl SpeedrunFsm {
             }
         }
         
+        // Auto-finish: entering The Ziggurat Refuge ends and auto-saves the speedrun.
+        // Previous zone's time was accumulated above, so nothing is lost.
+        const SPEEDRUN_FINISH_ZONE: &str = "The Ziggurat Refuge";
+        if self.mode == RunMode::Speedrun
+            && zone_name.trim().eq_ignore_ascii_case(SPEEDRUN_FINISH_ZONE)
+        {
+            // Prevent stop_run (called inside stop_and_save_run) from double-accumulating.
+            self.last_zone_name = None;
+            self.last_zone_entry_time = None;
+            let _ = self.stop_and_save_run();
+            return;
+        }
+
         self.last_zone_name = Some(zone_name.clone());
+
         self.last_zone_entry_time = Some(timestamp);
         let zone_analytics_entry = self.zone_analytics.entry(zone_name.clone()).or_insert(ZoneAnalytics { total_duration_ms: 0, visits_count: 0 });
         zone_analytics_entry.visits_count += 1;
@@ -537,7 +557,19 @@ impl SpeedrunFsm {
         }
     }
 
+
+    /// Clears actual durations for the given split indices (right-click → "Clear Split/Act").
+    pub fn clear_splits(&mut self, indices: &[usize]) {
+        for &idx in indices {
+            if idx < self.actual_durations.len() {
+                self.actual_durations[idx] = None;
+            }
+        }
+        self.visited_split_order.retain(|i| !indices.contains(i));
+    }
+
     pub fn reorder_splits(&mut self, new_indices: Vec<usize>) -> Result<(), String> {
+
         if new_indices.len() != self.route_splits.len() {
             return Err("Invalid indices length".to_string());
         }

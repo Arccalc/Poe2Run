@@ -211,6 +211,11 @@ export default function App() {
     return saved ? parseFloat(saved) : 1.0;
   });
 
+  // Context menu state for right-click clear on splits/acts
+  const [contextMenu, setContextMenu] = useState<{
+    x: number; y: number; indices: number[]; label: string;
+  } | null>(null);
+
   useEffect(() => {
     invoke('set_always_on_top', { alwaysOnTop: isAlwaysOnTop })
       .catch((e) => console.error('Failed to set always on top:', e));
@@ -794,7 +799,15 @@ export default function App() {
                     ) : (
                       groupedSplits.map((group, groupIndex) => (
                         <div key={`group-${groupIndex}`} style={{ marginBottom: '8px' }}>
-                          <div style={styles.actHeaderRow}>
+                          <div
+                            style={styles.actHeaderRow}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const actIndices = group.splits.map(s => s.originalIndex);
+                              setContextMenu({ x: e.clientX, y: e.clientY, indices: actIndices, label: 'Clear Act' });
+                            }}
+                          >
                             <span style={styles.actHeaderTitle}>
                               {group.actName}
                               <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 'normal', textTransform: 'none', marginLeft: '6px', fontFamily: 'JetBrains Mono, monospace' }}>
@@ -841,6 +854,11 @@ export default function App() {
                                   onDragEnter={(e) => handleDragEnter(e, split.originalIndex)}
                                   onDrop={(e) => handleDrop(e, split.originalIndex)}
                                   onDragEnd={handleDragEnd}
+                                  onContextMenu={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setContextMenu({ x: e.clientX, y: e.clientY, indices: [split.originalIndex], label: 'Clear Split' });
+                                  }}
                                 >
                                   <div style={styles.splitMainInfo}>
                                     {isEditMode && !isActTriggerZone(split.zone_name) && (
@@ -883,6 +901,55 @@ export default function App() {
                         </div>
                       ))
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Right-click context menu overlay */}
+              {contextMenu && (
+                <div
+                  onClick={() => setContextMenu(null)}
+                  style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    zIndex: 9999,
+                  }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position: 'fixed',
+                      top: contextMenu.y,
+                      left: contextMenu.x,
+                      background: '#1e293b',
+                      border: '1px solid #334155',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                      zIndex: 10000,
+                      minWidth: '130px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <button
+                      onClick={async () => {
+                        try {
+                          await invoke('clear_splits', { indices: contextMenu.indices });
+                        } catch (e) {
+                          console.error('clear_splits failed:', e);
+                        }
+                        setContextMenu(null);
+                      }}
+                      style={{
+                        display: 'block', width: '100%', padding: '8px 14px',
+                        background: 'none', border: 'none', color: '#f87171',
+                        fontSize: '12px', textAlign: 'left', cursor: 'pointer',
+                        fontFamily: 'Inter, sans-serif',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(248,113,113,0.15)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                    >
+                      🗑 {contextMenu.label}
+                    </button>
                   </div>
                 </div>
               )}

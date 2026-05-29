@@ -1,11 +1,11 @@
 {
-  "version": "0.2.7",
-  "notes": "Fix resume run timing: app now initializes current zone from log history on startup, preventing elapsed time from pre-filling future zones.",
-  "pub_date": "2026-05-29T02:18:00Z",
+  "version": "0.2.8",
+  "notes": "Add right-click split/act clearing menu and auto-finish speedrun at 'The Ziggurat Refuge'",
+  "pub_date": "2026-05-29T04:51:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVTdvVUh1U0NJRUo5RTVGOHVDSGpwL3BCUXdPa3NJOTNWTnhEcFZqMFJVSGtLWkNGSnBwa3V5M0dmTWR6UC91WTlxVUpMNXQ4MnJweW1sS1BxSVcvckFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMDAzMTMwCWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjdfeDY0X2VuLVVTLm1zaQpoblNYMGc5ektRMHh5NW9mZEg2SkFRL3p3enJUdGdFWEdqRWhMclI4dzBKaFBXdDd2T0h0R05ueTJRVzNDVW9xVUNhamZaNWJkU0l5WUNMckRTQ0dEdz09Cg==",
-      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.7/PoE2SpeedrunTimer_0.2.7_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSY3ZydU9DRWNrVXowY01hK0hMUmJSV0p3eVVSdTY5bm9QdEVmelR6ZTMrRTZPcFBBOHI5SkpNTS9aQ2xsa0krV1hHNHpyL0JSVS9yNjQxK3lrd0pQOUxEMy9UcVRuWXc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMDMwMTA5CWZpbGU6UG9FMlNwZWVkcnVuVGltZXJfMC4yLjhfeDY0X2VuLVVTLm1zaQpFV2l3WmFtLzgzeEZIMkNlc1dXR0ZSNlJ1SmNHL1FsY0pTVEtpQ04va0lDVVAwVTV0S1V3RHN3TlpidGRad1VlZm14cTF2OUppQmVzYThKVG5hZzNDUT09Cg==",
+      "url": "https://github.com/Arccalc/Poe2Run/releases/download/v0.2.8/PoE2SpeedrunTimer_0.2.8_x64_en-US.msi"
     }
   }
 }

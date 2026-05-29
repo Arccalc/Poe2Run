@@ -146,6 +146,15 @@ fn reorder_route_splits(app: AppHandle, state: State<'_, AppState>, new_indices:
 }
 
 #[tauri::command]
+fn clear_splits(app: AppHandle, state: State<'_, AppState>, indices: Vec<usize>) -> Result<(), String> {
+    let mut fsm = state.fsm.lock().map_err(|e| e.to_string())?;
+    fsm.clear_splits(&indices);
+    let payload = fsm.generate_payload();
+    let _ = app.emit("fsm-state-update", payload);
+    Ok(())
+}
+
+#[tauri::command]
 fn select_route_file() -> Result<Option<String>, String> {
     let mut dialog = rfd::FileDialog::new()
         .add_filter("JSON Route", &["json"]);
@@ -456,7 +465,8 @@ pub fn run() {
             close_window,
             show_context_menu,
             reorder_route_splits,
-            open_kofi_url
+            open_kofi_url,
+            clear_splits
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
